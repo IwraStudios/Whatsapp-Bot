@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Firefox;
 using System.Threading;
@@ -10,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Web.Script.Serialization;
 using System.Net;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace WhatsappBot
 {
@@ -23,24 +22,25 @@ namespace WhatsappBot
 
         }
 
-        [Obsolete] //TODO: implement
         public class ChatSettings {
             public AutoTypes DefaultReply = AutoTypes.FamousQoute;
             public bool AllowGET = true; //TODO: implement
-            public bool SaveProfiles = true;//Save Profiles in runtime
+            public bool AutoSaveSettings = true;//Save Chatsettings and AutoSaveSettings generally on
+            public bool SaveMessages = false; //TODO: implement
             public AutoSaveSettings SaveSettings = new AutoSaveSettings();
         }
 
-        [Obsolete]//TODO: implement
+        [Serializable]
         public class AutoSaveSettings{
             public uint Interval = 3600;//every hour
             public ulong BackupInterval = 3600 * 24 * 7;//every week
-            public bool Backups = false;//Save backups which can be manually restored
-            public bool SaveProfiles = false;//Save Profiles with Save
+            public bool Backups = false;//Save backups which can be manually restored //TODO: implement
+            public bool SaveProfiles = true;//Save Profiles with Save
             public bool SaveCookies = true;//Save Cookies with Save
 
             
-            List<ChatProfile> SavedProfiles = new List<ChatProfile>(); //For later usage
+            public List<ChatProfile> SavedProfiles = new List<ChatProfile>(); //For later usage
+            public IReadOnlyCollection<OpenQA.Selenium.Cookie> SavedCookies = null; //For later usage
         }
 
         public class ChatProfile {
@@ -60,23 +60,45 @@ namespace WhatsappBot
                 return ("/help: show this text \n" +
                         "* show anything else");
             }
-                               } 
+                               }
+
+        [DllImport("Kernel32")]
+        private static extern bool SetConsoleCtrlHandler(EventHandler handler, bool add);
+
+        private delegate bool EventHandler(CtrlType sig);
+        static EventHandler _handler;
 
         static List<ChatProfile> PDB = new List<ChatProfile>();
         static IWebDriver driver = null;
         static ChatSettings settings;
         static void Main(string[] args)
         {
+            _handler += new EventHandler(ExitHandler);
+            SetConsoleCtrlHandler(_handler, true);
+
+
+            FirefoxProfile foxProfile = new FirefoxProfile();
+            foxProfile.AcceptUntrustedCertificates = false;
+            foxProfile.AlwaysLoadNoFocusLibrary = true;
+            
+
             using (driver = new FirefoxDriver())
             {
                 driver.Navigate().GoToUrl("https://web.whatsapp.com");
                 Thread.Sleep(1000);
                 Console.ReadKey();//TODO: auto-detect
                 //TODO: cookies remember
+                
+               
                 driver.FindElement(By.ClassName("first")).Click();//Go to the first chat
                 if (File.Exists(@"Save.bin"))
                 {
-                    settings = Extensions.ReadFromBinaryFile<ChatSettings>(@"Save.bin");
+                    Console.WriteLine("Trying to restore settings");
+                    settings = Extensions.ReadFromBinaryFile<ChatSettings>("Save.bin");
+                    if (settings.SaveSettings.SaveCookies)
+                    {
+                        settings.SaveSettings.SavedCookies.LoadCookies(driver);
+                    }
                 }
                 else
                 {
@@ -108,11 +130,26 @@ namespace WhatsappBot
 
         }
 
+        static void AutoSave()
+        {
+            if (!settings.AutoSaveSettings)
+                return;
+            if (settings.SaveSettings.SaveCookies)
+            {
+                settings.SaveSettings.SavedCookies = driver.Manage().Cookies.AllCookies;
+            }
+            if (settings.SaveSettings.SaveProfiles)
+            {
+                settings.SaveSettings.SavedProfiles = PDB;
+            }
+            settings.WriteToBinaryFile("Save.bin");
+        }
+
         static string GetLastestText(out string Pname)
         {
             IWebElement chat = driver.FindElement(By.ClassName("active"));
             IWebElement nametag = chat.FindElement(By.ClassName("ellipsify"));
-            Pname = nametag.GetAttribute("title"); //TODO: test reliability
+            Pname = nametag.GetAttribute("title");
             IReadOnlyCollection<IWebElement> messages = null;
             try
             {
@@ -195,6 +232,32 @@ namespace WhatsappBot
             chatbox.SendKeys(outp);
             chatbox.SendKeys(Keys.Enter);
         }
+
+        public enum CtrlType
+        {
+            CTRL_C_EVENT = 0,
+            CTRL_BREAK_EVENT = 1,
+            CTRL_CLOSE_EVENT = 2,
+            CTRL_LOGOFF_EVENT = 5,
+            CTRL_SHUTDOWN_EVENT = 6
+        }
+
+        public static bool ExitHandler(CtrlType sig)
+        {//TODO: implement
+            switch (sig)
+            {
+                case CtrlType.CTRL_C_EVENT:
+                case CtrlType.CTRL_LOGOFF_EVENT:
+                case CtrlType.CTRL_SHUTDOWN_EVENT:
+                case CtrlType.CTRL_CLOSE_EVENT:
+                    AutoSave();
+                    break;
+                default:
+                    return false;
+            }
+            return false;
+        }
+        
     }
 
     public static class Extensions
@@ -229,6 +292,14 @@ namespace WhatsappBot
         {
             using (System.IO.Stream stream = System.IO.File.Open(filePath, System.IO.FileMode.Open))
                 return (T)(new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter().Deserialize(stream));
+        }
+
+        public static void LoadCookies(this IReadOnlyCollection<OpenQA.Selenium.Cookie> Cookies, IWebDriver driver)
+        {
+            foreach (OpenQA.Selenium.Cookie cookie in Cookies)
+            {
+                driver.Manage().Cookies.AddCookie(cookie);
+            }
         }
 
     }
