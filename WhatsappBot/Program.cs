@@ -119,7 +119,11 @@ namespace WhatsappBot
 
                     string Pname = "";
                     string message_text = GetLastestText(out Pname);
-
+                    if (settings.SaveMessages)
+                    {
+                        //TODO: make msg class
+                        //TODO: make list of msg class
+                    }
                     Console.WriteLine("recieved text from " + Pname + " Saying: " + message_text);
                     AutoTypes reply = ParseMessage(Pname, message_text);
                     AutoMessage(reply, Pname);
@@ -143,6 +147,10 @@ namespace WhatsappBot
                 settings.SaveSettings.SavedProfiles = PDB;
             }
             settings.WriteToBinaryFile("Save.bin");
+            if (settings.SaveSettings.Backups)
+            {
+                //TODO: implement
+            }
         }
 
         static string GetLastestText(out string Pname)
@@ -214,6 +222,7 @@ namespace WhatsappBot
                     return;
                 }
             }
+
 
             if(type == AutoTypes.Help)
             {
