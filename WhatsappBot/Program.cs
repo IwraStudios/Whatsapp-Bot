@@ -87,7 +87,6 @@ namespace WhatsappBot
                 driver.Navigate().GoToUrl("https://web.whatsapp.com");
                 Thread.Sleep(1000);
                 Console.ReadKey();//TODO: auto-detect
-                //TODO: cookies remember
                 
                
                 driver.FindElement(By.ClassName("first")).Click();//Go to the first chat

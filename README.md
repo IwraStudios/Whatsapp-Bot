@@ -1,6 +1,8 @@
 # Whatsapp-Bot
 Web.whatsapp.com bot made with selenium
 
+<img src="https://ci.appveyor.com/api/projects/status/github/IwraStudios/Whatsapp-Bot"></img>
+
 ## Coming Soon
 ### To a pc near you
 
@@ -11,7 +13,7 @@ Web.whatsapp.com bot made with selenium
  * Make virtual classes
 * Fix any bugs
 * Do some examples
-* make documentation 
+* make documentation
 
 # Terms and conditions
 
