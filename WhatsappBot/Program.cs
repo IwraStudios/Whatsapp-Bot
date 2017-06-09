@@ -65,16 +65,11 @@ namespace WhatsappBot
         [DllImport("Kernel32")]
         private static extern bool SetConsoleCtrlHandler(EventHandler handler, bool add);
 
-        private delegate bool EventHandler(CtrlType sig);
-        static EventHandler _handler;
-
         static List<ChatProfile> PDB = new List<ChatProfile>();
         static IWebDriver driver = null;
         static ChatSettings settings;
         static void Main(string[] args)
         {
-            _handler += new EventHandler(ExitHandler);
-            SetConsoleCtrlHandler(_handler, true);
 
 
             FirefoxProfile foxProfile = new FirefoxProfile();
@@ -87,7 +82,6 @@ namespace WhatsappBot
                 driver.Navigate().GoToUrl("https://web.whatsapp.com");
                 Thread.Sleep(1000);
                 Console.ReadKey();//TODO: auto-detect
-                
                
                 driver.FindElement(By.ClassName("first")).Click();//Go to the first chat
                 if (File.Exists(@"Save.bin"))
@@ -239,31 +233,6 @@ namespace WhatsappBot
             chatbox.Click();
             chatbox.SendKeys(outp);
             chatbox.SendKeys(Keys.Enter);
-        }
-
-        public enum CtrlType
-        {
-            CTRL_C_EVENT = 0,
-            CTRL_BREAK_EVENT = 1,
-            CTRL_CLOSE_EVENT = 2,
-            CTRL_LOGOFF_EVENT = 5,
-            CTRL_SHUTDOWN_EVENT = 6
-        }
-
-        public static bool ExitHandler(CtrlType sig)
-        {//TODO: implement
-            switch (sig)
-            {
-                case CtrlType.CTRL_C_EVENT:
-                case CtrlType.CTRL_LOGOFF_EVENT:
-                case CtrlType.CTRL_SHUTDOWN_EVENT:
-                case CtrlType.CTRL_CLOSE_EVENT:
-                    AutoSave();
-                    break;
-                default:
-                    return false;
-            }
-            return false;
         }
         
     }
