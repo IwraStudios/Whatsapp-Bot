@@ -1,7 +1,7 @@
 # Whatsapp-Bot
 Web.whatsapp.com bot made with selenium
 
-<img src="https://ci.appveyor.com/api/projects/status/github/IwraStudios/Whatsapp-Bot"></img>
+[<img src="https://ci.appveyor.com/api/projects/status/github/IwraStudios/Whatsapp-Bot"></img>](https://ci.appveyor.com/project/IwraStudios/whatsapp-bot)
 
 ## Coming Soon
 ### To a pc near you
