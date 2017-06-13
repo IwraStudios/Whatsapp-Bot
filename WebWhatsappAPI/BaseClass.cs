@@ -10,7 +10,9 @@ namespace WebWhatsappAPI
 {
     public class BaseClass
     {
-
+        /// <summary>
+        /// The settings of the an driver
+        /// </summary>
         public class ChatSettings
         {
             public bool AllowGET = true; //TODO: implement
@@ -19,29 +21,22 @@ namespace WebWhatsappAPI
             public AutoSaveSettings SaveSettings = new AutoSaveSettings();
         }
 
+        /// <summary>
+        /// The save settings of the an driver
+        /// </summary>
         public class AutoSaveSettings
         {
             public uint Interval = 3600;//every hour
             public ulong BackupInterval = 3600 * 24 * 7;//every week
             public bool Backups = false;//Save backups which can be manually restored //TODO: implement
-            public bool SaveProfiles = true;//Save Profiles with Save
             public bool SaveCookies = true;//Save Cookies with Save
 
-
-            public List<ChatProfile> SavedProfiles = new List<ChatProfile>(); //For later usage
             public IReadOnlyCollection<OpenQA.Selenium.Cookie> SavedCookies = null; //For later usage
         }
 
-        //TODO: change
-        public class ChatProfile
-        {
-            public ChatProfile(string name)
-            {
-                string personName = name;
-            }
-            public string personName;
-        }
-
+        /// <summary>
+        /// Arguments used by Msg event
+        /// </summary>
         public class MsgArgs : EventArgs
         {
             string _Msg;
@@ -66,16 +61,21 @@ namespace WebWhatsappAPI
             OnMsgRecieved?.Invoke(new MsgArgs(Msg, Sender));
         }
 
+        /// <summary>
+        /// Current settings
+        /// </summary>
         public ChatSettings settings = new ChatSettings();
-        public List<ChatProfile> PDB = new List<ChatProfile>();
 
         protected IWebDriver driver = null;
         //static ChatSettings settings;
 
-
+        /// <summary>
+        /// Checks for messages which enables OnMsgRecieved event
+        /// </summary>
+        /// <returns>Nothing</returns>
         public async Task MessageScanner()
         {
-            while (true)//Make Cancelable(tokens)
+            while (true)//TODO: Make Cancelable(tokens)
             {
 
                 IReadOnlyCollection<IWebElement> unread = driver.FindElements(By.ClassName("unread-count"));
@@ -95,6 +95,11 @@ namespace WebWhatsappAPI
             }
         }
 
+        /// <summary>
+        /// Starts selenium driver, while loading a save file
+        /// </summary>
+        /// <param name="driver">The driver</param>
+        /// <param name="savefile">Path to savefile</param>
         public virtual void StartDriver(IWebDriver driver, string savefile)
         {
             StartDriver(driver);
@@ -112,11 +117,17 @@ namespace WebWhatsappAPI
                 settings = new ChatSettings();
             }
         }
-
+        /// <summary>
+        /// Starts selenium driver
+        /// </summary>
         public virtual void StartDriver()
         {
         }
 
+        /// <summary>
+        /// Starts selenium driver
+        /// </summary>
+        /// <param name="driver">The selenium driver</param>
         public virtual void StartDriver(IWebDriver driver)
         {
             this.driver = driver;
@@ -125,6 +136,9 @@ namespace WebWhatsappAPI
             //this.driver.FindElement(By.ClassName("first")).Click();//Go to the first chat
         }
 
+        /// <summary>
+        /// Saves to file
+        /// </summary>
         protected virtual void AutoSave()
         {
             if (!settings.AutoSaveSettings)
@@ -133,10 +147,6 @@ namespace WebWhatsappAPI
             {
                 settings.SaveSettings.SavedCookies = driver.Manage().Cookies.AllCookies;
             }
-            if (settings.SaveSettings.SaveProfiles)
-            {
-                settings.SaveSettings.SavedProfiles = PDB;
-            }
             settings.WriteToBinaryFile("Save.bin");
             if (settings.SaveSettings.Backups)
             {
@@ -144,18 +154,11 @@ namespace WebWhatsappAPI
             }
         }
 
-        public ChatProfile LookupPerson(string person)
-        {
-            foreach (ChatProfile p in PDB)
-            {
-                if (p.personName == person)
-                {
-                    return p;
-                }
-            }
-            return null;
-        }
-
+        /// <summary>
+        /// Gets the latest test
+        /// </summary>
+        /// <param name="Pname">[Optional output] the person that send the message</param>
+        /// <returns></returns>
         public string GetLastestText(out string Pname)
         {
             IWebElement chat = driver.FindElement(By.ClassName("active"));
@@ -172,6 +175,11 @@ namespace WebWhatsappAPI
             return System.Text.RegularExpressions.Regex.Replace(message_text_raw.Text, "<!--(.*?)-->", "");
         }
 
+        /// <summary>
+        /// Send message to person
+        /// </summary>
+        /// <param name="message">string to send</param>
+        /// <param name="person">person to send to (if null send to active)</param>
         public void SendMessage(string message, string person = null)
         {
             if(person != null)
@@ -195,15 +203,6 @@ namespace WebWhatsappAPI
             chatbox.Click();
             chatbox.SendKeys(outp);
             chatbox.SendKeys(Keys.Enter);
-        }
-
-        public virtual string HelpText
-        {
-            get
-            {
-                return ("/help: show this text \n" +
-                        "* show anything else");
-            }
         }
 
     }

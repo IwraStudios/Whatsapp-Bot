@@ -10,10 +10,16 @@ namespace WebWhatsappAPI.Firefox
 {
     public class FirefoxWApp : BaseClass
     {
+        /// <summary>
+        /// Initialize Firefox Driver
+        /// </summary>
         public FirefoxWApp()
         {
         }
 
+        /// <summary>
+        /// Start the selenium engine and finalize the initialisation
+        /// </summary>
         public override void StartDriver()
         {
             FirefoxProfile foxProfile = new FirefoxProfile();
