@@ -15,7 +15,7 @@ namespace WebWhatsappAPI
         /// </summary>
         public class ChatSettings
         {
-            public bool AllowGET = true; //TODO: implement
+            public bool AllowGET = true; //TODO: implement(what?)
             public bool AutoSaveSettings = true;//Save Chatsettings and AutoSaveSettings generally on
             public bool SaveMessages = false; //TODO: implement
             public AutoSaveSettings SaveSettings = new AutoSaveSettings();
@@ -152,6 +152,32 @@ namespace WebWhatsappAPI
             {
                 //TODO: implement
             }
+        }
+
+        /// <summary>
+        /// Saves settings and more to file
+        /// </summary>
+        /// <param name="FileName">Path/Filename to make the file (e.g. save1.bin)</param>
+        public virtual void Save(string FileName)
+        {
+            if (!settings.AutoSaveSettings)
+                return;
+            if (settings.SaveSettings.SaveCookies)
+            {
+                settings.SaveSettings.SavedCookies = driver.Manage().Cookies.AllCookies;
+            }
+            settings.WriteToBinaryFile(FileName);
+            if (settings.SaveSettings.Backups)
+            {
+                //TODO: implement
+            }
+
+        }
+
+        public virtual void Load(string FileName)
+        {
+            settings = Extensions.ReadFromBinaryFile<ChatSettings>(@FileName);
+            settings.SaveSettings.SavedCookies.LoadCookies(driver);
         }
 
         /// <summary>
