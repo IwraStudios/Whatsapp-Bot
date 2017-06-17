@@ -7,12 +7,8 @@ Web.whatsapp.com bot made with selenium
 ### To a pc near you
 
 ### TODO before (pre-)release
-* Finish necessary functions/features
-* Make a Library based of it
- * Make base class
- * Make virtual classes
-* Fix any bugs
-* Do some examples
+* Add more features
+* Add more Drivers
 * make documentation
 
 # Terms and conditions
