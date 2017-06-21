@@ -27,7 +27,6 @@ namespace WebWhatsappAPI.Firefox
             foxProfile.AlwaysLoadNoFocusLibrary = true;
 
             var driver_tmp = new FirefoxDriver(foxProfile);
-
             base.StartDriver(driver_tmp);
 
         }

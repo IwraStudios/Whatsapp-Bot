@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using WebWhatsappAPI.Firefox;
@@ -17,10 +19,31 @@ namespace FirefoxExample
         {
             driver = new FirefoxWApp();
             driver.StartDriver();
+
+            while(!driver.OnLoginPage())
+            {
+                Thread.Sleep(1000);
+                Console.WriteLine("Not on login page");
+            }
+            driver.GetQRImage().Save("QR.jpg", System.Drawing.Imaging.ImageFormat.Jpeg); //Get QR code and save to file
+            int counter = 0;
+            while (driver.OnLoginPage())
+            {
+                Thread.Sleep(2000);
+                counter++;
+                if(counter > 15)
+                {
+                    driver.GetQRImage().Save("QR.jpg", System.Drawing.Imaging.ImageFormat.Jpeg); //QR probably updated so re-save
+                    counter = 0;
+                }
+                Console.WriteLine("Please login");
+            }
+
+            Console.WriteLine("You have logged in");
+            
             driver.OnMsgRecieved += OnMsgRec;
-            Console.WriteLine("login now, then press any key to continue");
-            Console.ReadKey();
             Task.Run(driver.MessageScanner);
+
             Console.ReadLine();
         }
 

@@ -1,15 +1,52 @@
 ﻿using OpenQA.Selenium;
+using OpenQA.Selenium.Support.Events;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace WebWhatsappAPI
 {
-    public class BaseClass
+    public partial class BaseClass
     {
+
+        /// <summary>
+        /// Current settings
+        /// </summary>
+        public ChatSettings settings = new ChatSettings();
+
+        protected IWebDriver driver = null;
+        /// <summary>
+        /// A refrence to the Selenium WebDriver used; Selenium.WebDriver required
+        /// </summary>
+        public IWebDriver WebDriver
+        {
+            get
+            {
+                if (driver != null)
+                {
+                    return driver;
+                }
+                else {
+                    throw new NullReferenceException("Can't use WebDriver before StartDriver()");
+                }
+            }
+        }
+
+        protected EventFiringWebDriver eventDriver = null;
+
+        /// <summary>
+        /// An event WebDriver from selenium; Selenium.Support package required
+        /// </summary>
+        public EventFiringWebDriver EventDriver { get { if (eventDriver != null)
+                {
+                    return eventDriver;
+                }
+                else { throw new NullReferenceException("Can't use Event Driver before StartDriver()"); }
+             } }
+
         /// <summary>
         /// The settings of the an driver
         /// </summary>
@@ -61,13 +98,79 @@ namespace WebWhatsappAPI
             OnMsgRecieved?.Invoke(new MsgArgs(Msg, Sender));
         }
 
-        /// <summary>
-        /// Current settings
-        /// </summary>
-        public ChatSettings settings = new ChatSettings();
 
-        protected IWebDriver driver = null;
-        //static ChatSettings settings;
+        /// <summary>
+        /// Returns if the Login page and QR has loaded
+        /// </summary>
+        /// <returns></returns>
+        public bool OnLoginPage()
+        {
+            try
+            {
+                if (driver.FindElement(By.XPath("//div[@id='window']/div/div/div/img")) != null)
+                {
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Gets raw QR string 
+        /// </summary>
+        /// <returns>sting(base64) of the image; returns null if not available</returns>
+        public string GetQRImageRAW()
+        {
+            try
+            {
+                IWebElement qrcode = driver.FindElement(By.XPath("//div[@id='window']/div/div/div/img"));
+                string outp = qrcode.GetAttribute("src");
+                outp = outp.Substring(22); //DELETE HEADER
+                return outp;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets an C# image of the QR on the homepage
+        /// </summary>
+        /// <returns>QR image; returns null if not available</returns>
+        public Image GetQRImage()
+        {
+            try
+            {
+                string base64image = GetQRImageRAW();
+                return Base64ToImage(base64image);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// https://stackoverflow.com/a/18827264
+        /// </summary>
+        /// <param name="base64String">Base 64 string</param>
+        /// <returns>an image</returns>
+        internal protected Image Base64ToImage(string base64String)
+        {
+            // Convert base 64 string to byte[]
+            byte[] imageBytes = Convert.FromBase64String(base64String);
+            // Convert byte[] to Image
+            using (var ms = new MemoryStream(imageBytes, 0, imageBytes.Length))
+            {
+                Image image = Image.FromStream(ms, true);
+                return image;
+            }
+        }
 
         /// <summary>
         /// Checks for messages which enables OnMsgRecieved event
@@ -132,7 +235,7 @@ namespace WebWhatsappAPI
         {
             this.driver = driver;
             this.driver.Navigate().GoToUrl("https://web.whatsapp.com");
-            
+            eventDriver = new EventFiringWebDriver(driver);
             //this.driver.FindElement(By.ClassName("first")).Click();//Go to the first chat
         }
 
