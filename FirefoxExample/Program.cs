@@ -43,8 +43,15 @@ namespace FirefoxExample
             
             driver.OnMsgRecieved += OnMsgRec;
             Task.Run(driver.MessageScanner);
-
-            Console.ReadLine();
+            Console.WriteLine("Use CTRL+C to exit");
+            while (true)
+            {
+                if (!driver.IsPhoneConnected())
+                {
+                    Console.WriteLine("Phone is not connected");
+                }
+                Thread.Sleep(10000);//wait 10 sec. so the console doesn't fill up
+            }
         }
 
         static void OnMsgRec(WebWhatsappAPI.BaseClass.MsgArgs arg)

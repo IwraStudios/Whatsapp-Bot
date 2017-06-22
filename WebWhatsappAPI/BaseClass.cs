@@ -119,6 +119,23 @@ namespace WebWhatsappAPI
             return false;
         }
 
+        public bool IsPhoneConnected()
+        {
+            try
+            {
+                if (driver.FindElement(By.ClassName("icon-alert")) != null)
+                {
+                    return false;
+                }
+            }
+            catch
+            {
+                return true;
+            }
+            return true;
+        }
+
+
         /// <summary>
         /// Gets raw QR string 
         /// </summary>
