@@ -119,6 +119,10 @@ namespace WebWhatsappAPI
             return false;
         }
 
+        /// <summary>
+        /// Check's if we get the notification "PhoneNotConnected"
+        /// </summary>
+        /// <returns>bool; true if connected</returns>
         public bool IsPhoneConnected()
         {
             try
