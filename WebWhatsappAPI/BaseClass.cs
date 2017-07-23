@@ -211,8 +211,8 @@ namespace WebWhatsappAPI
                 }
                 catch (Exception) { } //DEAL with Stale elements
                 await Task.Delay(200);//Let it load
-
-                string message_text = GetLastestText(out string Pname);
+                string Pname = "";
+                string message_text = GetLastestText(out Pname);
                 Raise_RecievedMessage(message_text, Pname);
 
             }
