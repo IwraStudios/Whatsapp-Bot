@@ -22,10 +22,11 @@ namespace WebWhatsappAPI.Firefox
         /// </summary>
         public override void StartDriver()
         {
-            FirefoxProfile foxProfile = new FirefoxProfile();
-            foxProfile.AcceptUntrustedCertificates = false;
-            foxProfile.AlwaysLoadNoFocusLibrary = true;
-
+            FirefoxProfile foxProfile = new FirefoxProfile()
+            {
+                AcceptUntrustedCertificates = false,
+                AlwaysLoadNoFocusLibrary = true
+            };
             var driver_tmp = new FirefoxDriver(foxProfile);
             base.StartDriver(driver_tmp);
 

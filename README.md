@@ -3,13 +3,15 @@ Web.whatsapp.com bot made with selenium
 
 [<img src="https://ci.appveyor.com/api/projects/status/github/IwraStudios/Whatsapp-Bot"></img>](https://ci.appveyor.com/project/IwraStudios/whatsapp-bot)
 
+Documentation available in \docs;   
+soon coming to a website
+
 ## Coming Soon
 ### To a pc near you
 
 ### TODO before (pre-)release
 * Add more features
 * Add more Drivers
-* make documentation
 
 # Terms and conditions
 

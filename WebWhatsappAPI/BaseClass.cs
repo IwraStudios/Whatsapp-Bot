@@ -209,11 +209,10 @@ namespace WebWhatsappAPI
                 {
                     unread.ElementAt(0).Click(); //Goto (first) Unread chat
                 }
-                catch (Exception e) { } //DEAL with Stale elements
+                catch (Exception) { } //DEAL with Stale elements
                 await Task.Delay(200);//Let it load
 
-                string Pname = "";
-                string message_text = GetLastestText(out Pname);
+                string message_text = GetLastestText(out string Pname);
                 Raise_RecievedMessage(message_text, Pname);
 
             }
@@ -319,7 +318,7 @@ namespace WebWhatsappAPI
             {
                 messages = driver.FindElement(By.ClassName("message-list")).FindElements(By.XPath("*"));
             }
-            catch (Exception e) { } //DEAL with Stale elements
+            catch (Exception) { } //DEAL with Stale elements
             IWebElement newmessage = messages.OrderBy((x) => x.Location.Y).Reverse().First(); //Get latest message
             IWebElement message_text_raw = newmessage.FindElement(By.ClassName("selectable-text"));
             return System.Text.RegularExpressions.Regex.Replace(message_text_raw.Text, "<!--(.*?)-->", "");
