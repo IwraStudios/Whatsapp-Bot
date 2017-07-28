@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['messagescanner',['MessageScanner',['../class_web_whatsapp_a_p_i_1_1_base_class.html#a1da111623bfd6bee9401b049560e2646',1,'WebWhatsappAPI::BaseClass']]]
+  ['hasstartedcheck',['HasStartedCheck',['../class_web_whatsapp_a_p_i_1_1_base_class.html#a69c20548bf1e5d5e2ed200f6d44222e5',1,'WebWhatsappAPI::BaseClass']]]
 ];

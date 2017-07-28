@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['firefoxwapp',['FirefoxWApp',['../class_web_whatsapp_a_p_i_1_1_firefox_1_1_firefox_w_app.html#a0c7a2248a6cf1699443a3ec99a17ba6d',1,'WebWhatsappAPI::Firefox::FirefoxWApp']]]
+  ['chromewapp',['ChromeWApp',['../class_web_whatsapp_a_p_i_1_1_chrome_1_1_chrome_w_app.html#a9c8ebf61ff410da72e8a50d68cbcf0f5',1,'WebWhatsappAPI::Chrome::ChromeWApp']]]
 ];
