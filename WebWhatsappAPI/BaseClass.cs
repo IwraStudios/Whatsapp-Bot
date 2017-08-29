@@ -256,7 +256,7 @@ namespace WebWhatsappAPI
         /// <returns>Nothing</returns>
         public async Task MessageScanner()
         {
-            while (true)//TODO: Make Cancelable(tokens)
+            while (true)
             {
 
                 IReadOnlyCollection<IWebElement> unread = driver.FindElements(By.ClassName("unread-count"));
@@ -339,7 +339,8 @@ namespace WebWhatsappAPI
             settings.WriteToBinaryFile("Save.bin");
             if (settings.SaveSettings.Backups)
             {
-                //TODO: implement
+                System.IO.Directory.CreateDirectory("./Backups");
+                settings.WriteToBinaryFile(String.Format("./Backups/Settings_{0}.bin", DateTime.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss")));
             }
         }
 
@@ -358,7 +359,8 @@ namespace WebWhatsappAPI
             settings.WriteToBinaryFile(FileName);
             if (settings.SaveSettings.Backups)
             {
-                //TODO: implement
+                System.IO.Directory.CreateDirectory("./Backups");
+                settings.WriteToBinaryFile(String.Format("./Backups/Settings_{0}.bin", DateTime.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss")));
             }
 
         }
@@ -395,6 +397,58 @@ namespace WebWhatsappAPI
         }
 
         /// <summary>
+        /// Gets Messages from Active/person's conversaton
+        /// <param>Order not garanteed</param>
+        /// </summary>
+        /// <param name="Pname">[Optional input] the person to get messages from</param>
+        /// <returns>Unordered List of messages</returns>
+        public IEnumerable<string> GetMessages(string Pname = null)
+        {
+            if(Pname != null)
+            {
+                SetActivePerson(Pname);
+            }
+            IReadOnlyCollection<IWebElement> messages = null;
+            try
+            {
+                messages = driver.FindElement(By.ClassName("message-list")).FindElements(By.XPath("*"));
+            }
+            catch (Exception) { } //DEAL with Stale elements
+            foreach(IWebElement x in messages)
+            {
+                IWebElement message_text_raw = x.FindElement(By.ClassName("selectable-text"));
+                yield return System.Text.RegularExpressions.Regex.Replace(message_text_raw.Text, "<!--(.*?)-->", "");
+            }
+        }
+
+        /// <summary>
+        /// Gets messages ordered "newest first"
+        /// </summary>
+        /// <param name="Pname">[Optional input] person to get messages from</param>
+        /// <returns>Ordered List of string's</returns>
+        public List<string> GetMessagesOrdered(string Pname = null)
+        {
+            if (Pname != null)
+            {
+                SetActivePerson(Pname);
+            }
+            IReadOnlyCollection<IWebElement> messages = null;
+            try
+            {
+                messages = driver.FindElement(By.ClassName("message-list")).FindElements(By.XPath("*"));
+            }
+            catch (Exception) { } //DEAL with Stale elements
+            List<string> outp = new List<string>();
+            foreach (IWebElement x in messages.OrderBy(x => x.Location.Y).Reverse())
+            {
+                IWebElement message_text_raw = x.FindElement(By.ClassName("selectable-text"));
+                outp.Add(System.Text.RegularExpressions.Regex.Replace(message_text_raw.Text, "<!--(.*?)-->", ""));
+            }
+            return outp;
+
+        }
+
+        /// <summary>
         /// Send message to person
         /// </summary>
         /// <param name="message">string to send</param>
@@ -403,25 +457,30 @@ namespace WebWhatsappAPI
         {
             if(person != null)
             {
-                IReadOnlyCollection<IWebElement> AllChats = driver.FindElements(By.ClassName("chat-title"));
-                foreach(IWebElement we in AllChats)
-                {
-                    IWebElement Title = we.FindElement(By.ClassName("emojitext"));
-                    if(Title.GetAttribute("title") == person)
-                    {
-                        Title.Click();
-                        System.Threading.Thread.Sleep(300);
-                        break;
-                    }
-                    Console.WriteLine("Can't find person, not sending");
-                    return;
-                }
+                SetActivePerson(person);
             }
             string outp = message.ToWhatsappText();
             IWebElement chatbox = driver.FindElement(By.ClassName("block-compose"));
             chatbox.Click();
             chatbox.SendKeys(outp);
             chatbox.SendKeys(Keys.Enter);
+        }
+
+        public void SetActivePerson(string person)
+        {
+            IReadOnlyCollection<IWebElement> AllChats = driver.FindElements(By.ClassName("chat-title"));
+            foreach (IWebElement we in AllChats)
+            {
+                IWebElement Title = we.FindElement(By.ClassName("emojitext"));
+                if (Title.GetAttribute("title") == person)
+                {
+                    Title.Click();
+                    System.Threading.Thread.Sleep(300);
+                    break;
+                }
+                Console.WriteLine("Can't find person, not sending");
+                return;
+            }
         }
 
         /// <summary>
