@@ -316,7 +316,7 @@ namespace WebWhatsappAPI
         /// <param name="driver">The selenium driver</param>
         public virtual void StartDriver(IWebDriver driver)
         {
-            StartDriver();
+            //StartDriver();
             this.driver = driver;
             this.driver.Navigate().GoToUrl("https://web.whatsapp.com");
             eventDriver = new EventFiringWebDriver(driver);
