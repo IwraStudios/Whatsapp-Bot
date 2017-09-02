@@ -19,32 +19,21 @@ namespace FirefoxExample
             _driver.StartDriver();
 
             //Wait till we are on the login page
-            while(!_driver.OnLoginPage())
+            while (!_driver.OnLoginPage())
             {
                 Thread.Sleep(1000);
                 Console.WriteLine("Not on login page");
             }
 
-            while (_driver.GetQrImage() == null)
-            {
-                Thread.Sleep(1000);
-                try
-                {
-                    _driver.GetQrImage().Save("QR.jpg", ImageFormat.Jpeg);
-                }
-                catch
-                {
-                    
-                }
-            }
+            _driver.GetQrImage().Save("QR.jpg", ImageFormat.Jpeg);
 
             Console.WriteLine("You have logged in");
-            
+
             //IMPORTANT: Setup for the auto-replier(this.OnMsgRec)
             _driver.OnMsgRecieved += OnMsgRec;
             Task.Run(_driver.MessageScanner);
             //IMPORTANT
-            
+
             Console.WriteLine("Use CTRL+C to exit");
             while (true)
             {
@@ -53,13 +42,13 @@ namespace FirefoxExample
                 {
                     Console.WriteLine("Phone is not connected");
                 }
-                Thread.Sleep(10000);//wait 10 sec. so the console doesn't fill up
+                Thread.Sleep(10000); //wait 10 sec. so the console doesn't fill up
             }
         }
 
         //Function which will recieve all messages
         private static void OnMsgRec(BaseClass.MsgArgs arg)
-        {            
+        {
             //show message with timestamp in console
             Console.WriteLine(arg.Sender + " Wrote: " + arg.Msg + " at " + arg.TimeStamp);
             var ser = new JavaScriptSerializer();
@@ -68,11 +57,10 @@ namespace FirefoxExample
                 //Get random qoute from someone
                 var json = wc.DownloadString("https://random-quote-generator.herokuapp.com/api/quotes/random");
                 dynamic usr = ser.DeserializeObject(json);
-                
+
                 //Send message to the origional Sender
                 _driver.SendMessage(usr["quote"] + "\n -" + usr["author"], arg.Sender);
             }
-
         }
     }
 }
