@@ -62,7 +62,6 @@ namespace FirefoxExample
         {            
             //show message with timestamp in console
             Console.WriteLine(arg.Sender + " Wrote: " + arg.Msg + " at " + arg.TimeStamp);
-
             var ser = new JavaScriptSerializer();
             using (var wc = new WebClient())
             {

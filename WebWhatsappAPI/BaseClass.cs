@@ -220,12 +220,12 @@ namespace WebWhatsappAPI
         /// Gets an C# image of the QR on the homepage
         /// </summary>
         /// <returns>QR image; returns null if not available</returns>
-        public Image GetQRImage()
+        public Image GetQrImage()
         {
             try
             {
-                string base64image = GetQRImageRAW();
-                return Base64ToImage(base64image);
+                var base64Image = GetQRImageRAW();
+                return Base64ToImage(base64Image);
             }
             catch
             {
@@ -241,11 +241,11 @@ namespace WebWhatsappAPI
         internal protected Image Base64ToImage(string base64String)
         {
             // Convert base 64 string to byte[]
-            byte[] imageBytes = Convert.FromBase64String(base64String);
+            var imageBytes = Convert.FromBase64String(base64String);
             // Convert byte[] to Image
             using (var ms = new MemoryStream(imageBytes, 0, imageBytes.Length))
             {
-                Image image = Image.FromStream(ms, true);
+                var image = Image.FromStream(ms, true);
                 return image;
             }
         }
@@ -268,8 +268,8 @@ namespace WebWhatsappAPI
                 }
                 catch (Exception) { } //DEAL with Stale elements
                 await Task.Delay(200);//Let it load
-                string Pname = "";
-                string message_text = GetLastestText(out Pname);
+                var Pname = "";
+                var message_text = GetLastestText(out Pname);
                 Raise_RecievedMessage(message_text, Pname);
 
             }
@@ -316,9 +316,8 @@ namespace WebWhatsappAPI
         /// <param name="driver">The selenium driver</param>
         public virtual void StartDriver(IWebDriver driver)
         {
-            //StartDriver();
             this.driver = driver;
-            this.driver.Navigate().GoToUrl("https://web.whatsapp.com");
+            driver.Navigate().GoToUrl("https://web.whatsapp.com");
             eventDriver = new EventFiringWebDriver(driver);
             //this.driver.FindElement(By.ClassName("first")).Click();//Go to the first chat
         }
@@ -382,8 +381,8 @@ namespace WebWhatsappAPI
         /// <returns></returns>
         public string GetLastestText(out string Pname)
         {
-            IWebElement chat = driver.FindElement(By.ClassName("active"));
-            IWebElement nametag = chat.FindElement(By.ClassName("ellipsify"));
+            var chat = driver.FindElement(By.ClassName("active"));
+            var nametag = chat.FindElement(By.ClassName("ellipsify"));
             Pname = nametag.GetAttribute("title");
             IReadOnlyCollection<IWebElement> messages = null;
             try
@@ -391,8 +390,8 @@ namespace WebWhatsappAPI
                 messages = driver.FindElement(By.ClassName("message-list")).FindElements(By.XPath("*"));
             }
             catch (Exception) { } //DEAL with Stale elements
-            IWebElement newmessage = messages.OrderBy((x) => x.Location.Y).Reverse().First(); //Get latest message
-            IWebElement message_text_raw = newmessage.FindElement(By.ClassName("selectable-text"));
+            var newmessage = messages.OrderBy((x) => x.Location.Y).Reverse().First(); //Get latest message
+            var message_text_raw = newmessage.FindElement(By.ClassName("selectable-text"));
             return System.Text.RegularExpressions.Regex.Replace(message_text_raw.Text, "<!--(.*?)-->", "");
         }
 
@@ -414,9 +413,9 @@ namespace WebWhatsappAPI
                 messages = driver.FindElement(By.ClassName("message-list")).FindElements(By.XPath("*"));
             }
             catch (Exception) { } //DEAL with Stale elements
-            foreach(IWebElement x in messages)
+            foreach(var x in messages)
             {
-                IWebElement message_text_raw = x.FindElement(By.ClassName("selectable-text"));
+                var message_text_raw = x.FindElement(By.ClassName("selectable-text"));
                 yield return System.Text.RegularExpressions.Regex.Replace(message_text_raw.Text, "<!--(.*?)-->", "");
             }
         }
@@ -438,10 +437,10 @@ namespace WebWhatsappAPI
                 messages = driver.FindElement(By.ClassName("message-list")).FindElements(By.XPath("*"));
             }
             catch (Exception) { } //DEAL with Stale elements
-            List<string> outp = new List<string>();
-            foreach (IWebElement x in messages.OrderBy(x => x.Location.Y).Reverse())
+            var outp = new List<string>();
+            foreach (var x in messages.OrderBy(x => x.Location.Y).Reverse())
             {
-                IWebElement message_text_raw = x.FindElement(By.ClassName("selectable-text"));
+                var message_text_raw = x.FindElement(By.ClassName("selectable-text"));
                 outp.Add(System.Text.RegularExpressions.Regex.Replace(message_text_raw.Text, "<!--(.*?)-->", ""));
             }
             return outp;
@@ -459,8 +458,8 @@ namespace WebWhatsappAPI
             {
                 SetActivePerson(person);
             }
-            string outp = message.ToWhatsappText();
-            IWebElement chatbox = driver.FindElement(By.ClassName("block-compose"));
+            var outp = message.ToWhatsappText();
+            var chatbox = driver.FindElement(By.ClassName("block-compose"));
             chatbox.Click();
             chatbox.SendKeys(outp);
             chatbox.SendKeys(Keys.Enter);
@@ -469,9 +468,9 @@ namespace WebWhatsappAPI
         public void SetActivePerson(string person)
         {
             IReadOnlyCollection<IWebElement> AllChats = driver.FindElements(By.ClassName("chat-title"));
-            foreach (IWebElement we in AllChats)
+            foreach (var we in AllChats)
             {
-                IWebElement Title = we.FindElement(By.ClassName("emojitext"));
+                var Title = we.FindElement(By.ClassName("emojitext"));
                 if (Title.GetAttribute("title") == person)
                 {
                     Title.Click();
