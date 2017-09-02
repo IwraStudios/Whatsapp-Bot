@@ -1,11 +1,14 @@
-﻿using OpenQA.Selenium;
-using OpenQA.Selenium.Support.Events;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Support.Events;
+using Polly;
 
 /*! \mainpage Whatsapp api
  *
@@ -63,18 +66,18 @@ using System.Threading.Tasks;
  */
 
 
-
 namespace WebWhatsappAPI
 {
-    public partial class BaseClass
+    public class BaseClass
     {
-
         /// <summary>
         /// Current settings
         /// </summary>
-        public ChatSettings settings = new ChatSettings();
+        public ChatSettings Settings = new ChatSettings();
+
         public bool HasStarted { get; protected set; }
-        protected IWebDriver driver = null;
+        protected IWebDriver driver;
+
         /// <summary>
         /// A refrence to the Selenium WebDriver used; Selenium.WebDriver required
         /// </summary>
@@ -86,23 +89,26 @@ namespace WebWhatsappAPI
                 {
                     return driver;
                 }
-                else {
-                    throw new NullReferenceException("Can't use WebDriver before StartDriver()");
-                }
+                throw new NullReferenceException("Can't use WebDriver before StartDriver()");
             }
         }
 
-        protected EventFiringWebDriver eventDriver = null;
+        private EventFiringWebDriver _eventDriver;
 
         /// <summary>
         /// An event WebDriver from selenium; Selenium.Support package required
         /// </summary>
-        public EventFiringWebDriver EventDriver { get { if (eventDriver != null)
+        public EventFiringWebDriver EventDriver
+        {
+            get
+            {
+                if (_eventDriver != null)
                 {
-                    return eventDriver;
+                    return _eventDriver;
                 }
-                else { throw new NullReferenceException("Can't use Event Driver before StartDriver()"); }
-             } }
+                throw new NullReferenceException("Can't use Event Driver before StartDriver()");
+            }
+        }
 
         /// <summary>
         /// The settings of the an driver
@@ -110,7 +116,7 @@ namespace WebWhatsappAPI
         public class ChatSettings
         {
             public bool AllowGET = true; //TODO: implement(what?)
-            public bool AutoSaveSettings = true;//Save Chatsettings and AutoSaveSettings generally on
+            public bool AutoSaveSettings = true; //Save Chatsettings and AutoSaveSettings generally on
             public bool SaveMessages = false; //TODO: implement
             public AutoSaveSettings SaveSettings = new AutoSaveSettings();
         }
@@ -120,12 +126,12 @@ namespace WebWhatsappAPI
         /// </summary>
         public class AutoSaveSettings
         {
-            public uint Interval = 3600;//every hour
-            public ulong BackupInterval = 3600 * 24 * 7;//every week
-            public bool Backups = false;//Save backups which can be manually restored //TODO: implement
-            public bool SaveCookies = true;//Save Cookies with Save
+            public uint Interval = 3600; //every hour
+            public ulong BackupInterval = 3600 * 24 * 7; //every week
+            public bool Backups = false; //Save backups which can be manually restored //TODO: implement
+            public bool SaveCookies = true; //Save Cookies with Save
 
-            public IReadOnlyCollection<OpenQA.Selenium.Cookie> SavedCookies = null; //For later usage
+            public IReadOnlyCollection<Cookie> SavedCookies; //For later usage
         }
 
         /// <summary>
@@ -133,21 +139,22 @@ namespace WebWhatsappAPI
         /// </summary>
         public class MsgArgs : EventArgs
         {
-            string _Msg;
-            string _Sender;
-            DateTime _TimeStamp;
-            public MsgArgs(string Message, string sender)
+            public MsgArgs(string message, string sender)
             {
-                _TimeStamp = DateTime.Now;
-                this._Msg = Message;
-                this._Sender = sender;
+                TimeStamp = DateTime.Now;
+                Msg = message;
+                Sender = sender;
             }
-            public string Msg { get { return _Msg; } }
-            public string Sender { get { return _Sender; } }
-            public DateTime TimeStamp { get { return _TimeStamp; } }
+
+            public string Msg { get; }
+
+            public string Sender { get; }
+
+            public DateTime TimeStamp { get; }
         }
 
         public delegate void MsgRecievedEventHandler(MsgArgs e);
+
         public event MsgRecievedEventHandler OnMsgRecieved;
 
         protected void Raise_RecievedMessage(string Msg, string Sender)
@@ -164,7 +171,7 @@ namespace WebWhatsappAPI
         {
             try
             {
-                if (driver.FindElement(By.XPath("//div[@id='window']/div/div/div/img")) != null)
+                if (driver.FindElement(By.XPath("//div[@class='qr-wrapper-container']")) != null)
                 {
                     return true;
                 }
@@ -184,7 +191,7 @@ namespace WebWhatsappAPI
         {
             try
             {
-                if (driver.FindElement(By.ClassName("icon-alert")) != null)
+                if (driver.FindElement(By.ClassName("icon-alert-phone")) != null)
                 {
                     return false;
                 }
@@ -201,12 +208,12 @@ namespace WebWhatsappAPI
         /// Gets raw QR string 
         /// </summary>
         /// <returns>sting(base64) of the image; returns null if not available</returns>
-        public string GetQRImageRAW()
+        private string GetQRImageRAW()
         {
             try
             {
-                IWebElement qrcode = driver.FindElement(By.XPath("//div[@id='window']/div/div/div/img"));
-                string outp = qrcode.GetAttribute("src");
+                var qrcode = driver.FindElement(By.XPath("//img[@alt='Scan me!']"));
+                var outp = qrcode.GetAttribute("src");
                 outp = outp.Substring(22); //DELETE HEADER
                 return outp;
             }
@@ -220,17 +227,26 @@ namespace WebWhatsappAPI
         /// Gets an C# image of the QR on the homepage
         /// </summary>
         /// <returns>QR image; returns null if not available</returns>
-        public Image GetQRImage()
+        public Image GetQrImage()
         {
-            try
+            var pol = Policy<Image>
+                .Handle<Exception>()
+                .WaitAndRetry(new[]
+                {
+                    TimeSpan.FromSeconds(1),
+                    TimeSpan.FromSeconds(2),
+                    TimeSpan.FromSeconds(3)
+                });
+
+            return pol.Execute(() =>
             {
-                string base64image = GetQRImageRAW();
-                return Base64ToImage(base64image);
-            }
-            catch
-            {
-                return null;
-            }
+                var base64Image = GetQRImageRAW();
+
+                if(base64Image == null)
+                    throw new Exception("Image not found");
+
+                return Base64ToImage(base64Image);
+            });
         }
 
         /// <summary>
@@ -238,14 +254,14 @@ namespace WebWhatsappAPI
         /// </summary>
         /// <param name="base64String">Base 64 string</param>
         /// <returns>an image</returns>
-        internal protected Image Base64ToImage(string base64String)
+        private Image Base64ToImage(string base64String)
         {
             // Convert base 64 string to byte[]
-            byte[] imageBytes = Convert.FromBase64String(base64String);
+            var imageBytes = Convert.FromBase64String(base64String);
             // Convert byte[] to Image
             using (var ms = new MemoryStream(imageBytes, 0, imageBytes.Length))
             {
-                Image image = Image.FromStream(ms, true);
+                var image = Image.FromStream(ms, true);
                 return image;
             }
         }
@@ -258,7 +274,6 @@ namespace WebWhatsappAPI
         {
             while (true)
             {
-
                 IReadOnlyCollection<IWebElement> unread = driver.FindElements(By.ClassName("unread-count"));
                 if (unread.Count < 1)
                     continue;
@@ -266,12 +281,13 @@ namespace WebWhatsappAPI
                 {
                     unread.ElementAt(0).Click(); //Goto (first) Unread chat
                 }
-                catch (Exception) { } //DEAL with Stale elements
-                await Task.Delay(200);//Let it load
-                string Pname = "";
-                string message_text = GetLastestText(out Pname);
+                catch (Exception)
+                {
+                } //DEAL with Stale elements
+                await Task.Delay(200); //Let it load
+                var Pname = "";
+                var message_text = GetLastestText(out Pname);
                 Raise_RecievedMessage(message_text, Pname);
-
             }
         }
 
@@ -284,20 +300,21 @@ namespace WebWhatsappAPI
         public virtual void StartDriver(IWebDriver driver, string savefile)
         {
             StartDriver(driver);
-            if (File.Exists(@savefile))
+            if (File.Exists(savefile))
             {
                 Console.WriteLine("Trying to restore settings");
-                settings = Extensions.ReadFromBinaryFile<ChatSettings>("Save.bin");
-                if (settings.SaveSettings.SaveCookies)
+                Settings = Extensions.ReadFromBinaryFile<ChatSettings>("Save.bin");
+                if (Settings.SaveSettings.SaveCookies)
                 {
-                    settings.SaveSettings.SavedCookies.LoadCookies(driver);
+                    Settings.SaveSettings.SavedCookies.LoadCookies(driver);
                 }
             }
             else
             {
-                settings = new ChatSettings();
+                Settings = new ChatSettings();
             }
         }
+
         /// <summary>
         /// Starts selenium driver(only really used internally or virtually)
         /// Note: these functions don't make drivers
@@ -316,11 +333,9 @@ namespace WebWhatsappAPI
         /// <param name="driver">The selenium driver</param>
         public virtual void StartDriver(IWebDriver driver)
         {
-            //StartDriver();
             this.driver = driver;
-            this.driver.Navigate().GoToUrl("https://web.whatsapp.com");
-            eventDriver = new EventFiringWebDriver(driver);
-            //this.driver.FindElement(By.ClassName("first")).Click();//Go to the first chat
+            driver.Navigate().GoToUrl("https://web.whatsapp.com");
+            _eventDriver = new EventFiringWebDriver(WebDriver);
         }
 
 
@@ -330,18 +345,16 @@ namespace WebWhatsappAPI
         /// </summary>
         protected virtual void AutoSave()
         {
-            if (!settings.AutoSaveSettings)
+            if (!Settings.AutoSaveSettings)
                 return;
-            if (settings.SaveSettings.SaveCookies)
+            if (Settings.SaveSettings.SaveCookies)
             {
-                settings.SaveSettings.SavedCookies = driver.Manage().Cookies.AllCookies;
+                Settings.SaveSettings.SavedCookies = driver.Manage().Cookies.AllCookies;
             }
-            settings.WriteToBinaryFile("Save.bin");
-            if (settings.SaveSettings.Backups)
-            {
-                System.IO.Directory.CreateDirectory("./Backups");
-                settings.WriteToBinaryFile(String.Format("./Backups/Settings_{0}.bin", DateTime.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss")));
-            }
+            Settings.WriteToBinaryFile("Save.bin");
+            if (!Settings.SaveSettings.Backups) return;
+            Directory.CreateDirectory("./Backups");
+            Settings.WriteToBinaryFile($"./Backups/Settings_{DateTime.UtcNow:yyyy-MM-dd-HH-mm-ss}.bin");
         }
 
         /// <summary>
@@ -350,19 +363,19 @@ namespace WebWhatsappAPI
         /// <param name="FileName">Path/Filename to make the file (e.g. save1.bin)</param>
         public virtual void Save(string FileName)
         {
-            if (!settings.AutoSaveSettings)
+            if (!Settings.AutoSaveSettings)
                 return;
-            if (settings.SaveSettings.SaveCookies)
+            if (Settings.SaveSettings.SaveCookies)
             {
-                settings.SaveSettings.SavedCookies = driver.Manage().Cookies.AllCookies;
+                Settings.SaveSettings.SavedCookies = driver.Manage().Cookies.AllCookies;
             }
-            settings.WriteToBinaryFile(FileName);
-            if (settings.SaveSettings.Backups)
+            Settings.WriteToBinaryFile(FileName);
+            if (Settings.SaveSettings.Backups)
             {
-                System.IO.Directory.CreateDirectory("./Backups");
-                settings.WriteToBinaryFile(String.Format("./Backups/Settings_{0}.bin", DateTime.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss")));
+                Directory.CreateDirectory("./Backups");
+                Settings.WriteToBinaryFile(String.Format("./Backups/Settings_{0}.bin",
+                    DateTime.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss")));
             }
-
         }
 
         /// <summary>
@@ -371,8 +384,8 @@ namespace WebWhatsappAPI
         /// <param name="FileName">path to Filename</param>
         public virtual void Load(string FileName)
         {
-            settings = Extensions.ReadFromBinaryFile<ChatSettings>(@FileName);
-            settings.SaveSettings.SavedCookies.LoadCookies(driver);
+            Settings = Extensions.ReadFromBinaryFile<ChatSettings>(FileName);
+            Settings.SaveSettings.SavedCookies.LoadCookies(driver);
         }
 
         /// <summary>
@@ -382,18 +395,20 @@ namespace WebWhatsappAPI
         /// <returns></returns>
         public string GetLastestText(out string Pname)
         {
-            IWebElement chat = driver.FindElement(By.ClassName("active"));
-            IWebElement nametag = chat.FindElement(By.ClassName("ellipsify"));
+            var chat = driver.FindElement(By.ClassName("active"));
+            var nametag = chat.FindElement(By.ClassName("ellipsify"));
             Pname = nametag.GetAttribute("title");
             IReadOnlyCollection<IWebElement> messages = null;
             try
             {
                 messages = driver.FindElement(By.ClassName("message-list")).FindElements(By.XPath("*"));
             }
-            catch (Exception) { } //DEAL with Stale elements
-            IWebElement newmessage = messages.OrderBy((x) => x.Location.Y).Reverse().First(); //Get latest message
-            IWebElement message_text_raw = newmessage.FindElement(By.ClassName("selectable-text"));
-            return System.Text.RegularExpressions.Regex.Replace(message_text_raw.Text, "<!--(.*?)-->", "");
+            catch (Exception)
+            {
+            } //DEAL with Stale elements
+            var newmessage = messages.OrderBy(x => x.Location.Y).Reverse().First(); //Get latest message
+            var message_text_raw = newmessage.FindElement(By.ClassName("selectable-text"));
+            return Regex.Replace(message_text_raw.Text, "<!--(.*?)-->", "");
         }
 
         /// <summary>
@@ -404,7 +419,7 @@ namespace WebWhatsappAPI
         /// <returns>Unordered List of messages</returns>
         public IEnumerable<string> GetMessages(string Pname = null)
         {
-            if(Pname != null)
+            if (Pname != null)
             {
                 SetActivePerson(Pname);
             }
@@ -413,11 +428,13 @@ namespace WebWhatsappAPI
             {
                 messages = driver.FindElement(By.ClassName("message-list")).FindElements(By.XPath("*"));
             }
-            catch (Exception) { } //DEAL with Stale elements
-            foreach(IWebElement x in messages)
+            catch (Exception)
             {
-                IWebElement message_text_raw = x.FindElement(By.ClassName("selectable-text"));
-                yield return System.Text.RegularExpressions.Regex.Replace(message_text_raw.Text, "<!--(.*?)-->", "");
+            } //DEAL with Stale elements
+            foreach (var x in messages)
+            {
+                var message_text_raw = x.FindElement(By.ClassName("selectable-text"));
+                yield return Regex.Replace(message_text_raw.Text, "<!--(.*?)-->", "");
             }
         }
 
@@ -437,15 +454,16 @@ namespace WebWhatsappAPI
             {
                 messages = driver.FindElement(By.ClassName("message-list")).FindElements(By.XPath("*"));
             }
-            catch (Exception) { } //DEAL with Stale elements
-            List<string> outp = new List<string>();
-            foreach (IWebElement x in messages.OrderBy(x => x.Location.Y).Reverse())
+            catch (Exception)
             {
-                IWebElement message_text_raw = x.FindElement(By.ClassName("selectable-text"));
-                outp.Add(System.Text.RegularExpressions.Regex.Replace(message_text_raw.Text, "<!--(.*?)-->", ""));
+            } //DEAL with Stale elements
+            var outp = new List<string>();
+            foreach (var x in messages.OrderBy(x => x.Location.Y).Reverse())
+            {
+                var message_text_raw = x.FindElement(By.ClassName("selectable-text"));
+                outp.Add(Regex.Replace(message_text_raw.Text, "<!--(.*?)-->", ""));
             }
             return outp;
-
         }
 
         /// <summary>
@@ -455,12 +473,12 @@ namespace WebWhatsappAPI
         /// <param name="person">person to send to (if null send to active)</param>
         public void SendMessage(string message, string person = null)
         {
-            if(person != null)
+            if (person != null)
             {
                 SetActivePerson(person);
             }
-            string outp = message.ToWhatsappText();
-            IWebElement chatbox = driver.FindElement(By.ClassName("block-compose"));
+            var outp = message.ToWhatsappText();
+            var chatbox = driver.FindElement(By.ClassName("block-compose"));
             chatbox.Click();
             chatbox.SendKeys(outp);
             chatbox.SendKeys(Keys.Enter);
@@ -469,13 +487,13 @@ namespace WebWhatsappAPI
         public void SetActivePerson(string person)
         {
             IReadOnlyCollection<IWebElement> AllChats = driver.FindElements(By.ClassName("chat-title"));
-            foreach (IWebElement we in AllChats)
+            foreach (var we in AllChats)
             {
-                IWebElement Title = we.FindElement(By.ClassName("emojitext"));
+                var Title = we.FindElement(By.ClassName("emojitext"));
                 if (Title.GetAttribute("title") == person)
                 {
                     Title.Click();
-                    System.Threading.Thread.Sleep(300);
+                    Thread.Sleep(300);
                     break;
                 }
                 Console.WriteLine("Can't find person, not sending");
@@ -490,9 +508,8 @@ namespace WebWhatsappAPI
         {
             if (HasStarted ^ Invert)
             {
-                throw new NotSupportedException(String.Format("Driver has {0} already started", Invert ? "not":""));
+                throw new NotSupportedException(String.Format("Driver has {0} already started", Invert ? "not" : ""));
             }
         }
-
     }
 }

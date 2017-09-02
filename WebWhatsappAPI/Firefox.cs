@@ -1,4 +1,5 @@
-﻿using OpenQA.Selenium.Firefox;
+﻿using System;
+using OpenQA.Selenium.Firefox;
 
 namespace WebWhatsappAPI.Firefox
 {
@@ -17,16 +18,9 @@ namespace WebWhatsappAPI.Firefox
         public override void StartDriver()
         {
             HasStartedCheck();
-            FirefoxProfile foxProfile = new FirefoxProfile()
-            {
-                AcceptUntrustedCertificates = false,
-                AlwaysLoadNoFocusLibrary = true
-            };
-            var driver_tmp = new FirefoxDriver(foxProfile);
-            base.StartDriver(driver_tmp);
+            var firefoxOptions = new FirefoxOptions {Profile = new FirefoxProfile(AppDomain.CurrentDomain.BaseDirectory + @"\whatsappProfile", false) };
 
+            base.StartDriver(new FirefoxDriver(firefoxOptions));
         }
-
-
     }
 }
