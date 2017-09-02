@@ -164,7 +164,7 @@ namespace WebWhatsappAPI
         {
             try
             {
-                if (driver.FindElement(By.XPath("//div[@id='window']/div/div/div/img")) != null)
+                if (driver.FindElement(By.XPath("//div[@class='qr-wrapper-container']")) != null)
                 {
                     return true;
                 }
