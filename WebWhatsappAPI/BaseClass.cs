@@ -222,15 +222,24 @@ namespace WebWhatsappAPI
         /// <returns>QR image; returns null if not available</returns>
         public Image GetQrImage()
         {
-            try
+            var pol = Policy<Image>
+                .Handle<Exception>()
+                .WaitAndRetry(new[]
+                {
+                    TimeSpan.FromSeconds(1),
+                    TimeSpan.FromSeconds(2),
+                    TimeSpan.FromSeconds(3)
+                });
+
+            return pol.Execute(() =>
             {
                 var base64Image = GetQRImageRAW();
+
+                if(base64Image == null)
+                    throw new Exception("Image not found");
+
                 return Base64ToImage(base64Image);
-            }
-            catch
-            {
-                return null;
-            }
+            });
         }
 
         /// <summary>
