@@ -205,8 +205,8 @@ namespace WebWhatsappAPI
         {
             try
             {
-                IWebElement qrcode = driver.FindElement(By.XPath("//div[@id='window']/div/div/div/img"));
-                string outp = qrcode.GetAttribute("src");
+                var qrcode = driver.FindElement(By.XPath("//img[@alt='Scan me!']"));
+                var outp = qrcode.GetAttribute("src");
                 outp = outp.Substring(22); //DELETE HEADER
                 return outp;
             }
