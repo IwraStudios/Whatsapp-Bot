@@ -5,11 +5,21 @@ namespace WebWhatsappAPI.Firefox
 {
     public class FirefoxWApp : BaseClass
     {
+        FirefoxOptions FirefoxOP;
         /// <summary>
         /// Initialize Firefox Driver
         /// </summary>
         public FirefoxWApp()
         {
+            FirefoxOP = new FirefoxOptions
+            {
+                Profile = new FirefoxProfile(AppDomain.CurrentDomain.BaseDirectory + @"\whatsappProfile", false)
+                {
+                    AcceptUntrustedCertificates = false,
+                    AlwaysLoadNoFocusLibrary = true,
+                    DeleteAfterUse = false
+                }
+            };
         }
 
         /// <summary>
@@ -18,11 +28,29 @@ namespace WebWhatsappAPI.Firefox
         public override void StartDriver()
         {
             HasStartedCheck();
-            var firefoxOptions = new FirefoxOptions { Profile = new FirefoxProfile(AppDomain.CurrentDomain.BaseDirectory + @"\whatsappProfile", false) {
-                AcceptUntrustedCertificates = false,
-                AlwaysLoadNoFocusLibrary = true
-            } };
-            base.StartDriver(new FirefoxDriver(firefoxOptions));
+            base.StartDriver(new FirefoxDriver(FirefoxOP));
+        }
+
+        /// <summary>
+        /// Adds an argument when firefox is started
+        /// Note: has to be before start of driver
+        /// </summary>
+        /// <param name="arg">the argument</param>
+        public void AddStartArguments(params string[] args)
+        {
+            HasStartedCheck();
+            FirefoxOP.AddArguments(args);
+        }
+
+        /// <summary>
+        /// Adds an extension
+        /// Note: has to be before start of driver
+        /// </summary>
+        /// <param name="path">path to extension</param>
+        public void AddExtension(string path)
+        {
+            HasStartedCheck();
+            FirefoxOP.Profile.AddExtension(path);
         }
     }
 }
