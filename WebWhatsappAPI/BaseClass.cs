@@ -184,7 +184,7 @@ namespace WebWhatsappAPI
         {
             try
             {
-                if (driver.FindElement(By.ClassName("icon-alert")) != null)
+                if (driver.FindElement(By.ClassName("icon icon-alert icon-alert-phone")) != null)
                 {
                     return false;
                 }
