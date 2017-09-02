@@ -1,59 +1,55 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
+using System.Drawing.Imaging;
 using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
+using WebWhatsappAPI;
 using WebWhatsappAPI.Firefox;
-
 
 namespace FirefoxExample
 {
-    class Program
+    internal class Program
     {
-        static FirefoxWApp driver;
-        static void Main(string[] args)
+        private static FirefoxWApp _driver;
+
+        private static void Main(string[] args)
         {
-            driver = new FirefoxWApp();
-            driver.StartDriver();
+            _driver = new FirefoxWApp();
+            _driver.StartDriver();
 
             //Wait till we are on the login page
-            while(!driver.OnLoginPage())
+            while(!_driver.OnLoginPage())
             {
                 Thread.Sleep(1000);
                 Console.WriteLine("Not on login page");
             }
-            
-            //We are on the login page so wait for login(also save QR to file)
-            driver.GetQRImage().Save("QR.jpg", System.Drawing.Imaging.ImageFormat.Jpeg); //Get QR code and save to file
-            int counter = 0;
-            while (driver.OnLoginPage())
+
+            while (_driver.GetQrImage() == null)
             {
-                Thread.Sleep(2000);
-                counter++;
-                if(counter > 15)
+                Thread.Sleep(1000);
+                try
                 {
-                    driver.GetQRImage().Save("QR.jpg", System.Drawing.Imaging.ImageFormat.Jpeg); //QR probably updated so re-save
-                    counter = 0;
+                    _driver.GetQrImage().Save("QR.jpg", ImageFormat.Jpeg);
                 }
-                Console.WriteLine("Please login");
+                catch
+                {
+                    
+                }
             }
 
             Console.WriteLine("You have logged in");
             
             //IMPORTANT: Setup for the auto-replier(this.OnMsgRec)
-            driver.OnMsgRecieved += OnMsgRec;
-            Task.Run(driver.MessageScanner);
+            _driver.OnMsgRecieved += OnMsgRec;
+            Task.Run(_driver.MessageScanner);
             //IMPORTANT
             
             Console.WriteLine("Use CTRL+C to exit");
             while (true)
             {
                 //Check if phone is connected, because why not
-                if (!driver.IsPhoneConnected())
+                if (!_driver.IsPhoneConnected())
                 {
                     Console.WriteLine("Phone is not connected");
                 }
@@ -62,21 +58,20 @@ namespace FirefoxExample
         }
 
         //Function which will recieve all messages
-        static void OnMsgRec(WebWhatsappAPI.BaseClass.MsgArgs arg)
+        private static void OnMsgRec(BaseClass.MsgArgs arg)
         {            
             //show message with timestamp in console
-            Console.WriteLine(arg.Sender + " Wrote: " + arg.Msg + " at " + arg.TimeStamp.ToString());
+            Console.WriteLine(arg.Sender + " Wrote: " + arg.Msg + " at " + arg.TimeStamp);
 
-            JavaScriptSerializer ser = new JavaScriptSerializer();
-            using (WebClient wc = new WebClient())
+            var ser = new JavaScriptSerializer();
+            using (var wc = new WebClient())
             {
                 //Get random qoute from someone
                 var json = wc.DownloadString("https://random-quote-generator.herokuapp.com/api/quotes/random");
                 dynamic usr = ser.DeserializeObject(json);
                 
                 //Send message to the origional Sender
-                driver.SendMessage(usr["quote"] + "\n -" + usr["author"], arg.Sender);
-                return;
+                _driver.SendMessage(usr["quote"] + "\n -" + usr["author"], arg.Sender);
             }
 
         }
