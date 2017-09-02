@@ -272,15 +272,15 @@ namespace WebWhatsappAPI
         /// <param name="PeopleList">List of People to filter on(case-sensitive)</param>
         /// <param name="isBlackList"> is it a black- or whitelist (default whitelist)</param>
         /// <returns>Nothing</returns>
-        public async void MessageScanner(IList<string> PeopleList, bool isBlackList = false)
+        public async void MessageScanner(string[] PeopleList, bool isBlackList = false)
         {
             while (true)
             {
                 IReadOnlyCollection<IWebElement> unread = driver.FindElements(By.ClassName("unread"));
                 foreach(IWebElement x in unread.ToArray())//just in case
                 {
-                    x.FindElement(By.ClassName("ellipsify"));
-                    if (PeopleList.Contains(x.GetAttribute("title")))
+                    var y = x.FindElement(By.ClassName("ellipsify"));
+                    if (PeopleList.Contains(y.GetAttribute("title")) != isBlackList)
                     {
                         x.Click();
                         await Task.Delay(200); //Let it load
