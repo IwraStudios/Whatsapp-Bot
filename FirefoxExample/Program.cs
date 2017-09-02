@@ -31,7 +31,7 @@ namespace FirefoxExample
 
             //IMPORTANT: Setup for the auto-replier(this.OnMsgRec)
             _driver.OnMsgRecieved += OnMsgRec;
-            Task.Run(_driver.MessageScanner);
+            Task.Run(() => _driver.MessageScanner());
             //IMPORTANT
 
             Console.WriteLine("Use CTRL+C to exit");
