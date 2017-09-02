@@ -1,2 +1,11 @@
 before_build:
   - nuget restore
+
+after_build:
+  - ps: Get-ChildItem .\ -include bin -Recurse | foreach ($_) { Push-AppveyorArtifact $_.fullname }
+
+
+artifacts:
+  - path: docs
+    name: Docs
+    type: zip
