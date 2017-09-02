@@ -524,11 +524,10 @@ namespace WebWhatsappAPI
                 {
                     Title.Click();
                     Thread.Sleep(300);
-                    break;
+                    return;
                 }
-                Console.WriteLine("Can't find person, not sending");
-                return;
             }
+            Console.WriteLine("Can't find person, not sending");
         }
 
         /// <summary>

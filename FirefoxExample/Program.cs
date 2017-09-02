@@ -37,7 +37,7 @@ namespace FirefoxExample
 
             //IMPORTANT: Setup for the auto-replier(this.OnMsgRec)
             _driver.OnMsgRecieved += OnMsgRec;
-            Task.Run(() => _driver.MessageScanner(new[] { "Casper"}, true)); //No messages from Ryan or Casper(blacklist)
+            Task.Run(() => _driver.MessageScanner(new[] { "Ryan"}, true)); //No messages from Ryan (blacklist)
 
             ////
             //// if we only want to recieve messages from Ryan
