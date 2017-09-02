@@ -2,7 +2,7 @@ before_build:
   - nuget restore
 
 after_build:
-  - ps: Get-ChildItem .\ -include bin -Recurse | foreach ($_) { Compress-Archive -Path ("{0}{1}" -f $_.fullname, "\bin\") -DestinationPath ("{0}{1}{2}" -f ".\", ((get-item $_.fullname).parent.Name), ".zip") ; Push-AppveyorArtifact ("{0}{1}{2}" -f ".\", ((get-item $_.fullname).parent.Name), ".zip")}
+  - ps: Get-ChildItem .\ -include bin -Recurse | foreach ($_) { Compress-Archive -Path ("{0}{1}" -f $_.fullname, "\Debug\") -DestinationPath ("{0}{1}{2}" -f ".\", ((get-item $_.fullname).parent.Name), ".zip") ; Push-AppveyorArtifact ("{0}{1}{2}" -f ".\", ((get-item $_.fullname).parent.Name), ".zip")}
 
 
 artifacts:
