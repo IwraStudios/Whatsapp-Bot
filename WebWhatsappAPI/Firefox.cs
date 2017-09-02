@@ -18,8 +18,10 @@ namespace WebWhatsappAPI.Firefox
         public override void StartDriver()
         {
             HasStartedCheck();
-            var firefoxOptions = new FirefoxOptions {Profile = new FirefoxProfile(AppDomain.CurrentDomain.BaseDirectory + @"\whatsappProfile", false) };
-
+            var firefoxOptions = new FirefoxOptions { Profile = new FirefoxProfile(AppDomain.CurrentDomain.BaseDirectory + @"\whatsappProfile", false) {
+                AcceptUntrustedCertificates = false,
+                AlwaysLoadNoFocusLibrary = true
+            } };
             base.StartDriver(new FirefoxDriver(firefoxOptions));
         }
     }

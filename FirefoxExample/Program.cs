@@ -21,17 +21,28 @@ namespace FirefoxExample
             //Wait till we are on the login page
             while (!_driver.OnLoginPage())
             {
-                Thread.Sleep(1000);
                 Console.WriteLine("Not on login page");
+                Thread.Sleep(1000);
             }
 
+            Thread.Sleep(500);
             _driver.GetQrImage().Save("QR.jpg", ImageFormat.Jpeg);
 
+            while (_driver.OnLoginPage())
+            {
+                Console.WriteLine("Please login");
+                Thread.Sleep(5000);
+            }
             Console.WriteLine("You have logged in");
 
             //IMPORTANT: Setup for the auto-replier(this.OnMsgRec)
             _driver.OnMsgRecieved += OnMsgRec;
-            Task.Run(_driver.MessageScanner);
+            Task.Run(() => _driver.MessageScanner(new[] { "Casper"}, true)); //No messages from Ryan or Casper(blacklist)
+
+            ////
+            //// if we only want to recieve messages from Ryan
+            ////Task.Run(() => _driver.MessageScanner(new[] { "Ryan" }, false));
+            ////
             //IMPORTANT
 
             Console.WriteLine("Use CTRL+C to exit");

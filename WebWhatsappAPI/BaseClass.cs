@@ -267,16 +267,46 @@ namespace WebWhatsappAPI
         }
 
         /// <summary>
+        /// Scans for messages but only retreaves if person is in PeopleList
+        /// </summary>
+        /// <param name="PeopleList">List of People to filter on(case-sensitive)</param>
+        /// <param name="isBlackList"> is it a black- or whitelist (default whitelist)</param>
+        /// <returns>Nothing</returns>
+        public async void MessageScanner(string[] PeopleList, bool isBlackList = false)
+        {
+            while (true)
+            {
+                IReadOnlyCollection<IWebElement> unread = driver.FindElements(By.ClassName("unread"));
+                foreach(IWebElement x in unread.ToArray())//just in case
+                {
+                    var y = x.FindElement(By.ClassName("ellipsify"));
+                    if (PeopleList.Contains(y.GetAttribute("title")) != isBlackList)
+                    {
+                        x.Click();
+                        await Task.Delay(200); //Let it load
+                        var Pname = "";
+                        var message_text = GetLastestText(out Pname);
+                        Raise_RecievedMessage(message_text, Pname);
+                    }
+                }
+                await Task.Delay(50); //don't allow too much overhead
+            }
+        }
+
+        /// <summary>
         /// Checks for messages which enables OnMsgRecieved event
         /// </summary>
         /// <returns>Nothing</returns>
-        public async Task MessageScanner()
+        public async void MessageScanner()
         {
             while (true)
             {
                 IReadOnlyCollection<IWebElement> unread = driver.FindElements(By.ClassName("unread-count"));
                 if (unread.Count < 1)
+                {
+                    Thread.Sleep(50); //we don't wan't too much overhead
                     continue;
+                }
                 try
                 {
                     unread.ElementAt(0).Click(); //Goto (first) Unread chat
@@ -393,7 +423,7 @@ namespace WebWhatsappAPI
         /// </summary>
         /// <param name="Pname">[Optional output] the person that send the message</param>
         /// <returns></returns>
-        public string GetLastestText(out string Pname)
+        public string GetLastestText(out string Pname) //TODO: return IList<string> of all unread messages
         {
             var chat = driver.FindElement(By.ClassName("active"));
             var nametag = chat.FindElement(By.ClassName("ellipsify"));
