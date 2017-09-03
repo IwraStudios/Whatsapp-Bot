@@ -58,7 +58,7 @@ namespace FirefoxExample
         }
 
         //Function which will recieve all messages
-        private static void OnMsgRec(BaseClass.MsgArgs arg)
+        private static void OnMsgRec(IWebWhatsappDriver.MsgArgs arg)
         {
             //show message with timestamp in console
             Console.WriteLine(arg.Sender + " Wrote: " + arg.Msg + " at " + arg.TimeStamp);

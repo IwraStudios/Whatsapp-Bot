@@ -6,7 +6,8 @@ namespace WebWhatsappAPI
     {
         public static string ToWhatsappText(this string inp) //Makes sure newlines don't submit
         {
-            return inp.Replace("\n", (OpenQA.Selenium.Keys.Shift + OpenQA.Selenium.Keys.Enter));
+            return inp.Replace("\n", (OpenQA.Selenium.Keys.Shift + OpenQA.Selenium.Keys.Enter + OpenQA.Selenium.Keys.LeftShift))
+                .Replace(":", ">");
         }
 
         /// <summary>

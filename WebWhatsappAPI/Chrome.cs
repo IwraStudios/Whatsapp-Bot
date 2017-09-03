@@ -2,7 +2,7 @@
 
 namespace WebWhatsappAPI.Chrome
 {
-    public class ChromeWApp : BaseClass
+    public class ChromeWApp : IWebWhatsappDriver
     {
         ChromeOptions ChromeOP;
         /// <summary>

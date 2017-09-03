@@ -3,7 +3,7 @@ using OpenQA.Selenium.Firefox;
 
 namespace WebWhatsappAPI.Firefox
 {
-    public class FirefoxWApp : BaseClass
+    public class FirefoxWApp : IWebWhatsappDriver
     {
         FirefoxOptions FirefoxOP;
         /// <summary>

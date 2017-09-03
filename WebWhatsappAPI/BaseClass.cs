@@ -68,7 +68,7 @@ using Polly;
 
 namespace WebWhatsappAPI
 {
-    public class BaseClass
+    public abstract class IWebWhatsappDriver
     {
         /// <summary>
         /// Current settings
