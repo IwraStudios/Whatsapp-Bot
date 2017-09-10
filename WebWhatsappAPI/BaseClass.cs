@@ -514,6 +514,11 @@ namespace WebWhatsappAPI
             chatbox.SendKeys(Keys.Enter);
         }
 
+        /// <summary>
+        /// Set's Active person/chat by name
+        /// <para>useful for default chat type of situations</para>
+        /// </summary>
+        /// <param name="person">the person to set active</param>
         public void SetActivePerson(string person)
         {
             IReadOnlyCollection<IWebElement> AllChats = driver.FindElements(By.ClassName("chat-title"));
@@ -528,6 +533,20 @@ namespace WebWhatsappAPI
                 }
             }
             Console.WriteLine("Can't find person, not sending");
+        }
+
+        /// <summary>
+        /// Get's all chat names so you can make a selection menu
+        /// </summary>
+        /// <returns>Unorderd string 'Enumerable'</returns>
+        public IEnumerable<string> GetAllChatNames()
+        {
+            IReadOnlyCollection<IWebElement> AllChats = driver.FindElements(By.ClassName("chat-title"));
+            foreach (var we in AllChats)
+            {
+                var Title = we.FindElement(By.ClassName("emojitext"));
+                yield return Title.GetAttribute("title");
+            }
         }
 
         /// <summary>
