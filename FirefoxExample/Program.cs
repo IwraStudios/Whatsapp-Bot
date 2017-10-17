@@ -37,7 +37,7 @@ namespace FirefoxExample
 
             //IMPORTANT: Setup for the auto-replier(this.OnMsgRec)
             _driver.OnMsgRecieved += OnMsgRec;
-            Task.Run(() => _driver.MessageScanner(new[] { "Casper"}, true)); //No messages from Ryan or Casper(blacklist)
+            Task.Run(() => _driver.MessageScanner(new[] { "Ryan"}, true)); //No messages from Ryan (blacklist)
 
             ////
             //// if we only want to recieve messages from Ryan
@@ -58,7 +58,7 @@ namespace FirefoxExample
         }
 
         //Function which will recieve all messages
-        private static void OnMsgRec(BaseClass.MsgArgs arg)
+        private static void OnMsgRec(IWebWhatsappDriver.MsgArgs arg)
         {
             //show message with timestamp in console
             Console.WriteLine(arg.Sender + " Wrote: " + arg.Msg + " at " + arg.TimeStamp);

@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebWhatsappAPI", "WebWhatsa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FirefoxExample", "FirefoxExample\FirefoxExample.csproj", "{E1F40998-68B4-44BC-8C6A-A09626F7A2A6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModularExample", "ModularExample\ModularExample.csproj", "{B360EAC2-691C-4214-A7D9-3A68786B65AB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{E1F40998-68B4-44BC-8C6A-A09626F7A2A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E1F40998-68B4-44BC-8C6A-A09626F7A2A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E1F40998-68B4-44BC-8C6A-A09626F7A2A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B360EAC2-691C-4214-A7D9-3A68786B65AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B360EAC2-691C-4214-A7D9-3A68786B65AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B360EAC2-691C-4214-A7D9-3A68786B65AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B360EAC2-691C-4214-A7D9-3A68786B65AB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

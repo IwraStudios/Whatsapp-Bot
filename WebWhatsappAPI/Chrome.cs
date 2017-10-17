@@ -2,15 +2,15 @@
 
 namespace WebWhatsappAPI.Chrome
 {
-    public class ChromeWApp : BaseClass
+    public class ChromeWApp : IWebWhatsappDriver
     {
-        static ChromeOptions ChromeOP;
+        ChromeOptions ChromeOP;
         /// <summary>
         /// Make a new ChromeWhatsapp Instance
         /// </summary>
         public ChromeWApp()
         {
-            ChromeOP = new ChromeOptions();
+            ChromeOP = new ChromeOptions() { LeaveBrowserRunning = false};
         }
 
         /// <summary>
@@ -47,10 +47,10 @@ namespace WebWhatsappAPI.Chrome
         /// Note: has to be before start of driver
         /// </summary>
         /// <param name="arg">the argument</param>
-        public void AddStartArgument(string arg)
+        public void AddStartArgument(params string[] arg)
         {
             HasStartedCheck();
-            ChromeOP.AddArgument(arg);
+            ChromeOP.AddArguments(arg);
         }
     }
 }

@@ -68,7 +68,7 @@ using Polly;
 
 namespace WebWhatsappAPI
 {
-    public class BaseClass
+    public abstract class IWebWhatsappDriver
     {
         /// <summary>
         /// Current settings
@@ -242,7 +242,7 @@ namespace WebWhatsappAPI
             {
                 var base64Image = GetQRImageRAW();
 
-                if(base64Image == null)
+                if (base64Image == null)
                     throw new Exception("Image not found");
 
                 return Base64ToImage(base64Image);
@@ -277,7 +277,7 @@ namespace WebWhatsappAPI
             while (true)
             {
                 IReadOnlyCollection<IWebElement> unread = driver.FindElements(By.ClassName("unread"));
-                foreach(IWebElement x in unread.ToArray())//just in case
+                foreach (IWebElement x in unread.ToArray())//just in case
                 {
                     var y = x.FindElement(By.ClassName("ellipsify"));
                     if (PeopleList.Contains(y.GetAttribute("title")) != isBlackList)
@@ -514,6 +514,11 @@ namespace WebWhatsappAPI
             chatbox.SendKeys(Keys.Enter);
         }
 
+        /// <summary>
+        /// Set's Active person/chat by name
+        /// <para>useful for default chat type of situations</para>
+        /// </summary>
+        /// <param name="person">the person to set active</param>
         public void SetActivePerson(string person)
         {
             IReadOnlyCollection<IWebElement> AllChats = driver.FindElements(By.ClassName("chat-title"));
@@ -524,10 +529,24 @@ namespace WebWhatsappAPI
                 {
                     Title.Click();
                     Thread.Sleep(300);
-                    break;
+                    return;
                 }
-                Console.WriteLine("Can't find person, not sending");
-                return;
+            }
+            Console.WriteLine("Can't find person, not sending");
+        }
+
+        /// <summary>
+        /// Get's all chat names so you can make a selection menu
+        /// </summary>
+        /// <returns>Unorderd string 'Enumerable'</returns>
+        public IEnumerable<string> GetAllChatNames()
+        {
+            HasStartedCheck();
+            IReadOnlyCollection<IWebElement> AllChats = driver.FindElement(By.ClassName("chatlist")).FindElements(By.ClassName("chat-title"));
+            foreach (var we in AllChats)
+            {
+                var Title = we.FindElement(By.ClassName("emojitext"));
+                yield return Title.GetAttribute("title");
             }
         }
 
